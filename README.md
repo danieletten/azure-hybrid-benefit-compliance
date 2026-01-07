@@ -32,28 +32,7 @@ While Azure Hybrid Benefit offers significant cost savings, organizations face c
 
 ## Getting Started
 
-### Option 1: Quick Deploy (Recommended)
-
-Deploy the workbook directly to your Azure subscription using Azure Resource Manager (ARM):
-
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdanieletten%2Fazure-hybrid-benefit-compliance%2Fmain%2Fdeploy%2Fazuredeploy.json)
-
-**What this does:**
-- Creates a shared workbook in your selected resource group
-- No manual JSON copying required
-- Workbook is immediately available in Azure Monitor
-
-**Deployment steps:**
-1. Click the **Deploy to Azure** button above
-2. Sign in to your Azure subscription
-3. Select or create a **Resource Group** where the workbook will be stored
-4. Optionally customize the **Workbook Display Name** (default: "Azure Hybrid Benefit & SA Entitlement Tracker")
-5. Click **Review + Create**, then **Create**
-6. Once deployed, navigate to **Azure Monitor** → **Workbooks** → **Shared Workbooks** to access it
-
-### Option 2: Manual Installation
-
-If you prefer to manually import the workbook:
+### Installation
 
 1. **Download the workbook JSON**:
    - Navigate to [`workbooks/Azure-Monitor-Workbook.json`](workbooks/Azure-Monitor-Workbook.json)
