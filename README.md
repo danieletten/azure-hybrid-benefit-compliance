@@ -1,4 +1,19 @@
-# Azure Hybrid Benefit & Software Assurance Entitlement Tracker
+![MIT License](https://img.shields.io/badge/license-MIT-green)
+![Azure Resource Graph](https://img.shields.io/badge/Source-Azure%20Resource%20Graph-blue)
+![Workbook](https://img.shields.io/badge/Workbook-Azure%20Monitor-lightgrey)
+
+# Azure Hybrid Benefit Compliance
+
+An Azure Monitor Workbook for tracking Azure Hybrid Benefit usage and Software Assurance entitlement consumption across Windows Server and SQL Server workloads.
+
+**Key capabilities:**
+- Track Azure Hybrid Benefit (AHB) enablement across resources
+- Compare core consumption against Software Assurance entitlements
+- Identify pay-as-you-go (PAYG) workloads eligible for cost optimization
+- Provide audit-oriented licensing insights
+
+> This project is intended for informational and governance use only. No rights can be derived from the data presented. Always validate licensing compliance with official Microsoft documentation and your contractual agreements.
+
 
 ## What is Azure Hybrid Benefit?
 
