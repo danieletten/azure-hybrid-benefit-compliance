@@ -1,0 +1,30 @@
+// SQL Server on Azure VMs by subscription and AHB status
+// Filtered by SQL Edition parameter
+// Note: Replace {SqlEditionParam} with specific editions when running standalone
+Resources
+| where type =~ "microsoft.sqlvirtualmachine/sqlvirtualmachines"
+| join kind=leftouter (
+    ResourceContainers
+    | where type =~ "microsoft.resources/subscriptions"
+    | project subscriptionId, subscriptionName = name
+) on subscriptionId
+| extend
+    VmResourceId = tostring(properties.virtualMachineResourceId),
+    SqlServerLicenseType = tostring(properties.sqlServerLicenseType),
+    SqlImageOffer = tostring(properties.sqlImageOffer),
+    SqlImageSku = tostring(properties.sqlImageSku)
+| extend
+    SqlEdition = case(
+        isempty(SqlImageSku) and isempty(SqlImageOffer), "Unknown",
+        strcat(SqlImageOffer, " ", SqlImageSku)
+    ),
+    AHB_Status = case(
+        SqlServerLicenseType =~ "AHUB", "AHB enabled",
+        SqlServerLicenseType =~ "PAYG", "AHB not enabled",
+        isempty(SqlServerLicenseType), "AHB unknown",
+        "AHB unknown"
+    )
+// Remove or modify the line below when running standalone
+| where SqlEdition in ({SqlEditionParam})
+| summarize VMCount = dcount(VmResourceId) by subscriptionName, AHB_Status
+| order by subscriptionName asc, AHB_Status asc

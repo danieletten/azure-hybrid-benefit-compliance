@@ -1,0 +1,17 @@
+// Windows Server virtual machines by subscription and AHB status
+// This query shows VM counts grouped by subscription
+Resources
+| where type =~ 'microsoft.compute/virtualmachines'
+| extend
+    osType = tostring(properties.storageProfile.osDisk.osType),
+    licenseType = tostring(properties.licenseType)
+| where osType =~ 'Windows'
+| join kind=leftouter (
+    ResourceContainers
+    | where type =~ "microsoft.resources/subscriptions"
+    | project subscriptionId, subscriptionName = name
+) on subscriptionId
+| extend
+    AHB_Status = iff(licenseType =~ 'Windows_Server', 'AHB enabled', 'AHB not enabled')
+| summarize VMCount = count() by subscriptionName, AHB_Status
+| order by subscriptionName asc, AHB_Status asc

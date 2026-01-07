@@ -1,0 +1,79 @@
+// Windows Server Core Consumption by License Pool
+// This query calculates core consumption and allocates it to Datacenter/Standard pools
+// based on the selected allocation mode
+//
+// PARAMETERS (replace with actual values when running standalone):
+// - {WindowsServerDatacenterCorePacks}: Number of Datacenter 2-core packs (e.g., 10)
+// - {WindowsServerStandardCorePacks}: Number of Standard 2-core packs (e.g., 5)
+// - {WindowsServerAllocationMode}: One of: DatacenterFirst, StandardFirst, NoAllocation
+//
+// IMPORTANT: Azure cannot distinguish which VMs use Datacenter vs Standard licenses.
+// The allocation mode is a user-defined assumption for tracking purposes only.
+
+Resources
+| where type =~ 'microsoft.compute/virtualmachines'
+| extend
+    osType = tostring(properties.storageProfile.osDisk.osType),
+    licenseType = tostring(properties.licenseType),
+    vmSize = tostring(properties.hardwareProfile.vmSize)
+| where osType =~ 'Windows'
+| extend
+    vCores = toint(extract(@'_([DEFL])(\d+)', 2, vmSize))
+| extend
+    vCores = iff(isnull(vCores) or vCores == 0, 2, vCores)
+| extend
+    CoresConsumed = iff(licenseType =~ 'Windows_Server', vCores, 0)
+| summarize
+    TotalCoresConsumed = sum(CoresConsumed),
+    AHB_VMs = countif(licenseType =~ 'Windows_Server'),
+    PAYG_VMs = countif(licenseType !~ 'Windows_Server')
+| extend
+    DcCorePacks = tolong(iff(isempty('{WindowsServerDatacenterCorePacks}'), '0', '{WindowsServerDatacenterCorePacks}')),
+    StdCorePacks = tolong(iff(isempty('{WindowsServerStandardCorePacks}'), '0', '{WindowsServerStandardCorePacks}')),
+    AllocationMode = '{WindowsServerAllocationMode}'
+| extend
+    DcCoresAvail = DcCorePacks * 2,
+    StdCoresAvail = StdCorePacks * 2
+| extend
+    DcUsed = case(
+        AllocationMode == 'DatacenterFirst', iff(TotalCoresConsumed <= DcCoresAvail, TotalCoresConsumed, DcCoresAvail),
+        AllocationMode == 'StandardFirst', iff(TotalCoresConsumed <= StdCoresAvail, 0, TotalCoresConsumed - StdCoresAvail),
+        AllocationMode == 'NoAllocation', tolong(0),
+        tolong(0)
+    ),
+    StdUsed = case(
+        AllocationMode == 'StandardFirst', iff(TotalCoresConsumed <= StdCoresAvail, TotalCoresConsumed, StdCoresAvail),
+        AllocationMode == 'DatacenterFirst', iff(TotalCoresConsumed <= DcCoresAvail, 0, TotalCoresConsumed - DcCoresAvail),
+        AllocationMode == 'NoAllocation', tolong(0),
+        tolong(0)
+    )
+| extend
+    DcRemain = DcCoresAvail - DcUsed,
+    StdRemain = StdCoresAvail - StdUsed
+| extend
+    DcStatus = case(
+        AllocationMode == 'NoAllocation', 'Allocation required',
+        DcCoresAvail == 0, 'Not configured',
+        DcUsed > DcCoresAvail, 'Exceeds entitlement',
+        'Within entitlement'
+    ),
+    StdStatus = case(
+        AllocationMode == 'NoAllocation', 'Allocation required',
+        StdCoresAvail == 0, 'Not configured',
+        StdUsed > StdCoresAvail, 'Exceeds entitlement',
+        'Within entitlement'
+    )
+| project
+    ['Total Cores Consumed'] = TotalCoresConsumed,
+    ['DC Packs'] = DcCorePacks,
+    ['DC Avail'] = DcCoresAvail,
+    ['DC Used'] = DcUsed,
+    ['DC Remain'] = DcRemain,
+    ['DC Status'] = DcStatus,
+    ['Std Packs'] = StdCorePacks,
+    ['Std Avail'] = StdCoresAvail,
+    ['Std Used'] = StdUsed,
+    ['Std Remain'] = StdRemain,
+    ['Std Status'] = StdStatus,
+    ['AHB VMs'] = AHB_VMs,
+    ['PAYG VMs'] = PAYG_VMs

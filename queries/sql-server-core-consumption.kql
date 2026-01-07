@@ -1,0 +1,69 @@
+// SQL Server Core Consumption with 4-Core Minimum Applied
+// This query calculates core consumption for SQL Server VMs and tracks against
+// Enterprise and Standard 2-core pack entitlements
+//
+// PARAMETERS (replace with actual values when running standalone):
+// - {SqlEditionParam}: SQL Edition filter (e.g., 'SQL2019 Enterprise', 'SQL2019 Standard')
+// - {SqlServerEnterpriseCorePacks}: Number of Enterprise 2-core packs (e.g., 20)
+// - {SqlServerStandardCorePacks}: Number of Standard 2-core packs (e.g., 10)
+//
+// IMPORTANT: This query applies the 4-core minimum licensing rule for SQL Server.
+// VMs with fewer than 4 cores are counted as consuming 4 cores.
+
+Resources
+| where type =~ 'microsoft.sqlvirtualmachine/sqlvirtualmachines'
+| extend
+    VmResourceId = tolower(tostring(properties.virtualMachineResourceId)),
+    SqlServerLicenseType = tostring(properties.sqlServerLicenseType),
+    SqlImageOffer = tostring(properties.sqlImageOffer),
+    SqlImageSku = tostring(properties.sqlImageSku)
+| extend
+    SqlEdition = iff(isempty(SqlImageSku) and isempty(SqlImageOffer), 'Unknown', strcat(SqlImageOffer, ' ', SqlImageSku))
+// Remove or modify the line below when running standalone
+| where SqlEdition in ({SqlEditionParam})
+| join kind=leftouter (
+    Resources
+    | where type =~ 'microsoft.compute/virtualmachines'
+    | extend vmSize = tostring(properties.hardwareProfile.vmSize)
+    | extend vCores = toint(extract('_[DEFL](\\d+)', 1, vmSize))
+    | extend vCores = iff(isnull(vCores) or vCores == 0, 2, vCores)
+    | project VmId = tolower(id), vCores
+) on $left.VmResourceId == $right.VmId
+| extend EffectiveCores = iff(vCores < 4, 4, vCores)
+| extend EffectiveCores = iff(isnull(EffectiveCores), 4, EffectiveCores)
+| extend
+    IsEnterprise = iff(SqlImageOffer contains 'Enterprise' or SqlImageSku contains 'Enterprise', 1, 0),
+    IsStandard = iff(SqlImageOffer contains 'Standard' or SqlImageSku contains 'Standard', 1, 0),
+    IsAHB = iff(SqlServerLicenseType =~ 'AHUB', 1, 0)
+| summarize
+    EnterpriseCores = sumif(EffectiveCores, IsAHB == 1 and (IsEnterprise == 1 or (IsEnterprise == 0 and IsStandard == 0))),
+    StandardCores = sumif(EffectiveCores, IsAHB == 1 and IsStandard == 1 and IsEnterprise == 0),
+    AHB_VMs = dcountif(VmResourceId, IsAHB == 1),
+    PAYG_VMs = dcountif(VmResourceId, SqlServerLicenseType =~ 'PAYG'),
+    Unknown_VMs = dcountif(VmResourceId, isempty(SqlServerLicenseType))
+| extend
+    EntCorePacks = tolong(iff(isempty('{SqlServerEnterpriseCorePacks}'), '0', '{SqlServerEnterpriseCorePacks}')),
+    StdCorePacks = tolong(iff(isempty('{SqlServerStandardCorePacks}'), '0', '{SqlServerStandardCorePacks}'))
+| extend
+    EntCoresAvail = EntCorePacks * 2,
+    StdCoresAvail = StdCorePacks * 2
+| extend
+    EntCoresRem = EntCoresAvail - EnterpriseCores,
+    StdCoresRem = StdCoresAvail - StandardCores
+| extend
+    EntStatus = iff(EntCoresAvail == 0, 'Not configured', iff(EnterpriseCores > EntCoresAvail, 'Exceeds entitlement', 'Within entitlement')),
+    StdStatus = iff(StdCoresAvail == 0, 'Not configured', iff(StandardCores > StdCoresAvail, 'Exceeds entitlement', 'Within entitlement'))
+| project
+    ['Ent Packs'] = EntCorePacks,
+    ['Ent Avail'] = EntCoresAvail,
+    ['Ent Used'] = EnterpriseCores,
+    ['Ent Remain'] = EntCoresRem,
+    ['Ent Status'] = EntStatus,
+    ['Std Packs'] = StdCorePacks,
+    ['Std Avail'] = StdCoresAvail,
+    ['Std Used'] = StandardCores,
+    ['Std Remain'] = StdCoresRem,
+    ['Std Status'] = StdStatus,
+    ['AHB VMs'] = AHB_VMs,
+    ['PAYG VMs'] = PAYG_VMs,
+    ['Unknown VMs'] = Unknown_VMs

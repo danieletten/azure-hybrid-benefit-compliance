@@ -1,0 +1,13 @@
+Resources
+| where type =~ 'microsoft.sql/servers/databases'
+| join kind=leftouter (
+    ResourceContainers
+    | where type =~ "microsoft.resources/subscriptions"
+    | project subscriptionId, subscriptionName = name
+) on subscriptionId
+| extend
+    licenseType = tostring(properties.licenseType)
+| extend
+    AHB_Status = iff(licenseType =~ 'BasePrice', 'AHB enabled', 'AHB not enabled')
+| summarize Count = count() by subscriptionName, AHB_Status
+| order by subscriptionName asc, AHB_Status asc

@@ -1,0 +1,45 @@
+Resources
+| where type in~ (
+  'microsoft.compute/virtualmachines',
+  'microsoft.sql/servers/databases',
+  'microsoft.sql/managedinstances',
+  'microsoft.sqlvirtualmachine/sqlvirtualmachines'
+)
+| extend Workload =
+    case(
+      type =~ 'microsoft.compute/virtualmachines', 'Windows Server license on VM',
+      type =~ 'microsoft.sqlvirtualmachine/sqlvirtualmachines', 'SQL Server license on VM',
+      type =~ 'microsoft.sql/servers/databases', 'Azure SQL Database license',
+      type =~ 'microsoft.sql/managedinstances', 'Azure SQL Managed Instance license',
+      'Other'
+    )
+| extend AHB_Status =
+    case(
+      type =~ 'microsoft.compute/virtualmachines'
+        and tostring(properties.storageProfile.osDisk.osType) =~ 'Windows'
+        and tostring(properties.licenseType) =~ 'Windows_Server', 'AHB enabled',
+      type =~ 'microsoft.compute/virtualmachines'
+        and tostring(properties.storageProfile.osDisk.osType) =~ 'Windows', 'AHB not enabled',
+      type =~ 'microsoft.sql/servers/databases'
+        and tostring(properties.licenseType) =~ 'BasePrice', 'AHB enabled',
+      type =~ 'microsoft.sql/servers/databases', 'AHB not enabled',
+      type =~ 'microsoft.sql/managedinstances'
+        and tostring(properties.licenseType) =~ 'BasePrice', 'AHB enabled',
+      type =~ 'microsoft.sql/managedinstances', 'AHB not enabled',
+      type =~ 'microsoft.sqlvirtualmachine/sqlvirtualmachines'
+        and tostring(properties.sqlServerLicenseType) =~ 'AHUB', 'AHB enabled',
+      type =~ 'microsoft.sqlvirtualmachine/sqlvirtualmachines'
+        and tostring(properties.sqlServerLicenseType) =~ 'PAYG', 'AHB not enabled',
+      type =~ 'microsoft.sqlvirtualmachine/sqlvirtualmachines'
+        and isempty(tostring(properties.sqlServerLicenseType)), 'AHB unknown',
+      type =~ 'microsoft.sqlvirtualmachine/sqlvirtualmachines', 'AHB unknown',
+      'Out of scope'
+    )
+| where Workload != 'Other'
+| where AHB_Status != 'Out of scope'
+| summarize
+    ['AHB enabled'] = countif(AHB_Status == 'AHB enabled'),
+    ['AHB not enabled'] = countif(AHB_Status == 'AHB not enabled'),
+    ['AHB unknown'] = countif(AHB_Status == 'AHB unknown')
+by Workload
+| order by Workload asc
