@@ -101,17 +101,23 @@ All data retrieved via **Azure Resource Graph** (no billing data required):
 
 ## Important Limitations and Disclaimers
 
-**⚠️ This is NOT a licensing compliance tool.**
+**⚠️ Compliance Responsibility**
 
+This workbook helps you **track and monitor** your Azure Hybrid Benefit usage, but you remain responsible for validating licensing compliance. This tool provides visibility and tracking insights to support your compliance efforts—it does not certify or guarantee compliance.
+
+**Always validate your licensing compliance by:**
+- Consulting official Microsoft licensing documentation and product terms
+- Reviewing your contractual agreements with Microsoft or authorized partners
+- Engaging with your license reseller or Microsoft licensing specialist
+- Conducting regular licensing audits through appropriate channels
+
+**Technical Limitations:**
 - **Core calculations** are based on VM vCore counts from Azure Resource Graph
 - **SQL Server**: Only VMs registered with SQL IaaS Agent are included
 - **Windows Server allocation**: Cannot automatically determine DC vs Standard—allocation mode is a user assumption only
-- **Indicative comparisons**: Results are based on user-provided entitlement data
-- **Not for compliance decisions**: This tool provides tracking insights, not compliance validation
+- **Indicative comparisons**: Results depend on user-provided entitlement data accuracy
 - **No verification**: Does not verify licensing eligibility, mobility rights, or contractual terms
 - **Unknown states preserved**: Must not be interpreted as compliant
-
-**Licensing compliance must always be validated against official Microsoft documentation, licensing statements, and your contractual agreements with Microsoft or authorized partners.**
 
 ---
 
