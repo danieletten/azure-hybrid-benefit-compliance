@@ -32,13 +32,28 @@ While Azure Hybrid Benefit offers significant cost savings, organizations face c
 
 ## Getting Started
 
-### Quick Deploy
+### Option 1: Quick Deploy (Recommended)
 
-Deploy the workbook directly to your Azure Monitor Workbooks:
+Deploy the workbook directly to your Azure subscription using Azure Resource Manager (ARM):
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdanieletten%2Fazure-hybrid-benefit-compliance%2Fmain%2Fworkbooks%2FAzure-Monitor-Workbook.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdanieletten%2Fazure-hybrid-benefit-compliance%2Fmain%2Fdeploy%2Fazuredeploy.json)
 
-### Manual Installation
+**What this does:**
+- Creates a shared workbook in your selected resource group
+- No manual JSON copying required
+- Workbook is immediately available in Azure Monitor
+
+**Deployment steps:**
+1. Click the **Deploy to Azure** button above
+2. Sign in to your Azure subscription
+3. Select or create a **Resource Group** where the workbook will be stored
+4. Optionally customize the **Workbook Display Name** (default: "Azure Hybrid Benefit & SA Entitlement Tracker")
+5. Click **Review + Create**, then **Create**
+6. Once deployed, navigate to **Azure Monitor** → **Workbooks** → **Shared Workbooks** to access it
+
+### Option 2: Manual Installation
+
+If you prefer to manually import the workbook:
 
 1. **Download the workbook JSON**:
    - Navigate to [`workbooks/Azure-Monitor-Workbook.json`](workbooks/Azure-Monitor-Workbook.json)
@@ -54,7 +69,13 @@ Deploy the workbook directly to your Azure Monitor Workbooks:
    - Click **Done Editing**
    - Click **Save** and choose a location (subscription/resource group)
 
-3. **Configure your entitlements**:
+### After Installation: Configure Your Entitlements
+
+Once the workbook is deployed or imported:
+
+1. **Open the workbook** in Azure Monitor → Workbooks → Shared Workbooks
+
+2. **Enter your entitlements** (at the top of the workbook):
    - Enter your Windows Server Datacenter 2-Core Packs
    - Enter your Windows Server Standard 2-Core Packs (if applicable)
    - Enter your SQL Server Enterprise 2-Core Packs
@@ -62,7 +83,7 @@ Deploy the workbook directly to your Azure Monitor Workbooks:
    - Select your Windows Server Allocation Mode
    - (Optional) Filter SQL Edition
 
-4. **Review and track**:
+3. **Review and track**:
    - View core consumption against entitlements
    - Identify VMs with AHB opportunities (PAYG VMs)
    - Monitor compliance status
