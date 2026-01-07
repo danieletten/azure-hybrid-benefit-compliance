@@ -1,5 +1,76 @@
 # Azure Hybrid Benefit & Software Assurance Entitlement Tracker
 
+## What is Azure Hybrid Benefit?
+
+**Azure Hybrid Benefit (AHB)** is a licensing benefit that allows organizations to use their on-premises Windows Server and SQL Server licenses with active Software Assurance (or qualifying subscriptions) to significantly reduce costs when running workloads in Azure.
+
+### Key Benefits
+
+- **Reduce Azure costs** by up to 40% on Windows Server VMs and up to 55% on SQL Server workloads
+- **Maximize your existing license investments** by bringing on-premises licenses to Azure
+- **Flexible licensing**: Use licenses in Azure, on-premises, or both (with mobility rights)
+- **No additional licensing fees**: Pay only for the base compute costs in Azure
+
+### Eligible Licenses
+
+Azure Hybrid Benefit applies to:
+- **Windows Server Datacenter** and **Standard** editions with active Software Assurance
+- **SQL Server Enterprise** and **Standard** editions with active Software Assurance
+- **Azure SQL Database** and **Azure SQL Managed Instance** (SQL Server licenses)
+
+### The Challenge: Tracking Compliance
+
+While Azure Hybrid Benefit offers significant cost savings, organizations face challenges in:
+1. **Tracking consumption**: How many cores are actively using AHB across your Azure estate?
+2. **Ensuring compliance**: Are you within your Software Assurance entitlements?
+3. **Identifying opportunities**: Which pay-as-you-go VMs could use AHB to reduce costs?
+4. **Managing multiple license pools**: Separate tracking for Datacenter, Standard, Enterprise, etc.
+
+**This workbook solves these challenges** by providing real-time visibility into AHB usage and SA entitlement consumption.
+
+---
+
+## Getting Started
+
+### Quick Deploy
+
+Deploy the workbook directly to your Azure Monitor Workbooks:
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdanieletten%2Fazure-hybrid-benefit-compliance%2Fmain%2Fworkbooks%2FAzure-Monitor-Workbook.json)
+
+### Manual Installation
+
+1. **Download the workbook JSON**:
+   - Navigate to [`workbooks/Azure-Monitor-Workbook.json`](workbooks/Azure-Monitor-Workbook.json)
+   - Download the file
+
+2. **Import to Azure Monitor**:
+   - Open [Azure Portal](https://portal.azure.com)
+   - Navigate to **Azure Monitor** → **Workbooks**
+   - Click **+ New**
+   - Click **Advanced Editor** (toolbar icon `</>`)
+   - Replace the default JSON with the downloaded workbook JSON
+   - Click **Apply**
+   - Click **Done Editing**
+   - Click **Save** and choose a location (subscription/resource group)
+
+3. **Configure your entitlements**:
+   - Enter your Windows Server Datacenter 2-Core Packs
+   - Enter your Windows Server Standard 2-Core Packs (if applicable)
+   - Enter your SQL Server Enterprise 2-Core Packs
+   - Enter your SQL Server Standard 2-Core Packs
+   - Select your Windows Server Allocation Mode
+   - (Optional) Filter SQL Edition
+
+4. **Review and track**:
+   - View core consumption against entitlements
+   - Identify VMs with AHB opportunities (PAYG VMs)
+   - Monitor compliance status
+
+---
+
+## About This Repository
+
 This repository contains an Azure Monitor Workbook that provides visibility into Azure Hybrid Benefit (AHB) usage and Software Assurance entitlement consumption across Azure subscriptions.
 
 The workbook is designed as a **reference implementation** for architects, FinOps teams, SAM (Software Asset Management) professionals, and governance or audit stakeholders who need transparent insight into how Microsoft licenses are consumed in Azure.
