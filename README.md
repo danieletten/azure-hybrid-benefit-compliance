@@ -31,6 +31,10 @@ An Azure Monitor Workbook for tracking Azure Hybrid Benefit (AHB) usage and Soft
 
 ---
 
+## Screenshot
+
+![Workbook Dashboard Example](media/ahbc-dashboard-example.png)
+
 ## Getting Started
 
 ### Requirements
