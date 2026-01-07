@@ -33,6 +33,12 @@ An Azure Monitor Workbook for tracking Azure Hybrid Benefit (AHB) usage and Soft
 
 ## Getting Started
 
+### Requirements
+
+This workbook uses **Azure Resource Graph** to query resource data and requires **read access** to the subscriptions you want to monitor. Users need one of the following:
+- **Reader** role (or higher) on target subscriptions
+- Custom role with `Microsoft.ResourceGraph/resources/read` permission
+
 ### Installation
 
 1. Download [`workbooks/Azure-Monitor-Workbook.json`](workbooks/Azure-Monitor-Workbook.json)
@@ -77,6 +83,8 @@ Choose an allocation assumption:
 - **Datacenter First**: Allocate to DC pool first, overflow to Standard
 - **Standard First**: Allocate to Standard pool first, overflow to DC
 - **No Allocation**: Show total consumption only (informational)
+
+> Allocation modes are modeling assumptions for tracking purposes only and do not represent actual license assignment.
 
 <details>
 <summary><b>📊 Technical Details</b></summary>
